@@ -50,18 +50,18 @@ jobs:
 
       - name: Detecte changed notebook
         id: detect
-        run: python srcipts/kaggle_cicd/detect_notebooks.py
+        run: python scripts/kaggle_cicd/detect_notebooks.py
 
       - name: Parse notebook configuration
         id: parse
         env:
           NOTEBOOK: ${{ steps.detect.outputs.notebook }}
-        run: python srcipts/kaggle_cicd/parse_notebook_config.py
+        run: python scripts/kaggle_cicd/parse_notebook_config.py
 
       - name: Validate configuration
         env:
           NOTEBOOK: ${{ steps.detect.outputs.notebook }}
-        run: python srcipts/kaggle_cicd/validate_config.py
+        run: python scripts/kaggle_cicd/validate_config.py
 
   ################################################################################
   # job 2 - Validate Kaggle Metadata
