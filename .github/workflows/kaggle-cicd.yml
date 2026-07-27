@@ -6,166 +6,156 @@ on:
       - feat/notebooks
     paths:
       - 'notebooks/*.ipynb' # Triggers only when a notebook file changes
-      - '.github/workflows/kaggle-cicd.yml'
-      - 'pyproject.toml'
 
 jobs:
-  deploy-and-run:
+  ################################################################################
+  # job 1 - Validate Notebook Configuration
+  ################################################################################
+  validate-notebook-config:
+    name: Validate Notebook Configuration
     runs-on: ubuntu-latest
+
+    outputs:
+      # Execution
+      execute: ${{ steps.detect.outputs.execute }}
+      notebook: ${{ steps.detect.outputs.notebook }}
+      slug: ${{ steps.parse.outputs.slug }}
+
+      # Kernel Metadata
+      title: ${{ steps.parse.outputs.filename }}
+      language: ${{ steps.parse.outputs.language }}
+      kernel_type: ${{ steps.parse.outputs.kernel_type }}
+      is_private: ${{ steps.parse.outputs.is_private }}
+
+      # Runtime
+      enable_gpu: ${{ steps.parse.outputs.enable_gpu }}
+      enable_tpu: ${{ steps.parse.outputs.enable_tpu }}
+      enable_internet: ${{ steps.parse.outputs.enable_internet }}
+      machine_shape: ${{ steps.parse.outputs.machine_shape }}
+
+      # Dependencies
+      dataset_sources: ${{ steps.parse.outputs.dataset_sources }}
+      competition_sources: ${{ steps.parse.outputs.competition_sources }}
+      kernel_sources: ${{ steps.parse.outputs.kernel_sources }}
+      model_sources: ${{ steps.parse.outputs.model_sources }}
+
+      # Metadata
+      keywords: ${{ steps.parse.outputs.keywords }}
+
     steps:
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 2 # Required to run git diff against the previous commit
 
-      # Step 1: Set up uv with automatic caching enabled
-      - name: Set up uv
+      - name: Detecte changed notebook
+        id: detect
+        run: python srcipts/kaggle_cicd/detect_notebooks.py
+
+      - name: Parse notebook configuration
+        id: parse
+        env:
+          NOTEBOOK: ${{ steps.detect.outputs.notebook }}
+        run: python srcipts/kaggle_cicd/parse_notebook_config.py
+
+      - name: Validate configuration
+        env:
+          NOTEBOOK: ${{ steps.detect.outputs.notebook }}
+        run: python srcipts/kaggle_cicd/validate_config.py
+
+  ################################################################################
+  # job 2 - Validate Kaggle Metadata
+  ################################################################################
+  validate-kaggle-metadata:
+    name: Validate Kaggle Metadata
+    runs-on: ubuntu-latest
+    needs: validate-notebook-config
+
+    if: needs.read-config.outputs.execute == 'true'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup uv
         uses: astral-sh/setup-uv@v5
         with:
+          python-version: "3.11"
           enable-cache: true
-          python-version: '3.11'
 
-      # Step 2: Use uv to install Kaggle CLI instantly
-      - name: Install Kaggle CLI
-        run: uv pip install kaggle
-
-      - name: Configure Kaggle Authentication
+      - name: Install Dependencies
         run: |
-          mkdir -p ~/.kaggle
-          echo '{"username":"${{ secrets.KAGGLE_USERNAME }}","key":"${{ secrets.KAGGLE_KEY }}"}' > ~/.kaggle/kaggle.json
-          chmod 600 ~/.kaggle/kaggle.json
+          uv sync
 
-      - name: Advanced Intent & Diff Detection
-        id: check_intent
+      # - name: Inject Runtime Variables
+      #   run: |
+      #     python scripts/cicd/inject_runtime.py
+
+      # - name: Inject GitHub metadata
+      #   env:
+      #     GITHUB_SHA: ${{ github.sha }}
+      #     GITHUB_REF_NAME: ${{ github.ref_name }}
+      #     GITHUB_RUN_ID: ${{ github.run_id }}
+      #     GITHUB_RUN_NUMBER: ${{ github.run_number }}
+      #   run: |
+      #     python scripts/cicd/inject_github_metadata.py
+
+      # - name: Generate kernel-metadata.json
+      #   run: |
+      #     python scripts/cicd/generate_kernel_metadata.py
+
+      # - name: Validate Metadata
+      #   run: |
+      #     python scripts/cicd/validate_kernel_metadata.py
+
+      # - name: Upload Artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: kaggle-notebook
+      #     path: |
+      #       notebooks/kernel-metadata.json
+
+
+  ################################################################################
+  # job 3 - Upload to Kaggle
+  ################################################################################
+  upload-kaggle:
+    name: Upload Notebook to Kaggle
+    runs-on: ubuntu-latest
+    needs: validate-kaggle-metadata
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+          enable-cache: true
+
+      - name: Install Dependencies
         run: |
-          # 1. Identify which notebook file was modified/added
-          CHANGED_FILE=$(git diff --name-only HEAD^ HEAD | grep '\.ipynb$' | head -n 1)
+          uv sync
 
-          if [ -z "$CHANGED_FILE" ]; then
-            echo "STATUS=skip" >> $GITHUB_ENV
-            echo "No notebook changes found in this commit."
-            exit 0
-          fi
+  ################################################################################
+  # job 4 - Trigger Execution
+  ################################################################################
+  trigger-execution:
+    name: Trigger Notebook Execution
+    runs-on: ubuntu-latest
+    needs: upload-kaggle
 
-          echo "Found modified notebook target: $CHANGED_FILE"
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-          # 2. Extract and evaluate your user-defined TRIGGER_FLAG status
-          if grep -q "# TRIGGER_FLAG: run" "$CHANGED_FILE"; then
-            echo "Intent Confirmed: Flag is set to RUN."
-            echo "STATUS=execute" >> $GITHUB_ENV
-            echo "CHANGED_FILE=$CHANGED_FILE" >> $GITHUB_ENV
-          elif grep -q "# TRIGGER_FLAG: pause" "$CHANGED_FILE"; then
-            echo "Intent Blocked: Flag is set to PAUSE. Skipping remote cloud deployment."
-            echo "STATUS=skip" >> $GITHUB_ENV
-          else
-            echo "Warning: No clean TRIGGER_FLAG found. Defaulting to skip to protect compute limits."
-            echo "STATUS=skip" >> $GITHUB_ENV
-          fi
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+          enable-cache: true
 
-      - name: Package and Push Kernel to Kaggle Cloud
-        # This guard keeps the step dormant if your check above evaluated to 'skip'
-        if: env.STATUS == 'execute'
-        env:
-          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
-          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
-          KAGGLE_DATASET_NAME: ${{ secrets.KAGGLE_DATASET_NAME }}
-          DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
-          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+      - name: Install Dependencies
         run: |
-          echo "Processing deployment configurations..."
-
-          # INJECT ENV VARS & EXTRACT KAGGLE_CONFIG HEADERS FROM NOTEBOOK
-          python -c "
-          import json, os, re
-
-          notebook_path = '${{ env.CHANGED_FILE }}'
-          with open(notebook_path, 'r', encoding='utf-8') as f:
-              data = json.load(f)
-
-          # --- SECTION 1: SECRETS INJECTION ---
-          injection_lines = (
-              'import os\n'
-              f'os.environ[\"DAGSHUB_USERNAME\"] = \"{os.environ[\"DAGSHUB_USERNAME\"]}\"\n'
-              f'os.environ[\"DAGSHUB_TOKEN\"] = \"{os.environ[\"DAGSHUB_TOKEN\"]}\"\n'
-              f'os.environ[\"KAGGLE_USER\"] = \"{os.environ[\"KAGGLE_USERNAME\"]}\"\n'
-              f'os.environ[\"KAGGLE_DATASET_NAME\"] = \"{os.environ[\"KAGGLE_DATASET_NAME\"]}\"\n'
-          )
-          new_cell = {
-              'cell_type': 'code',
-              'execution_count': None,
-              'metadata': {'jupyter': {'source_hidden': True}}, # Hides the cell from view in public notebooks!
-              'outputs': [],
-              'source': [injection_lines]
-          }
-          data['cells'].insert(0, new_cell)
-
-          # --- SECTION 2: CONFIG PARSING ---
-          # Combine text content from the first few cells to locate config lines
-          raw_text = ''
-          for cell in data['cells'][:6]: # Scrapes top cells (including newly added one)
-              if cell.get('cell_type') in ['code', 'markdown']:
-                  raw_text += '\n' + ''.join(cell.get('source', []))
-
-          def find_config(key, default, is_json=False):
-              match = re.search(r'#\s*KAGGLE_CONFIG:\s*' + re.escape(key) + r'\s*=\s*(.*)', raw_text)
-              if match:
-                  value_str = match.group(1).strip()
-                  if is_json:
-                      try:
-                          # Safely adjust single quotes to double quotes for standard json load
-                          return json.loads(ast.literal_eval(value_str).replace(\"'\", '\"'))
-                      except Exception as e:
-                          print(f'Parsing error for {key}: {e}')
-                          return default
-                  elif value_str.lower() in ['true', 'false']:
-                      return value_str.lower() == 'true'
-                  return value_str
-              return default
-
-          # Parse configurations or fallback to defaults
-          enable_gpu = find_config('enable_gpu', False)
-          enable_tpu = find_config('enable_tpu', False)
-          keywords = find_config('keywords', [], is_json=True)
-
-          dataset_sources = find_config('dataset_sources', [], is_json=True)
-          kernel_sources = find_config('kernel_sources', [], is_json=False)
-
-          # --- SECTION 3: METADATA COMPILED PAYLOAD ---
-          filename = os.path.basename(notebook_path).rsplit('.', 1)[0]
-          slug = filename.lower().replace(' ', '-').replace('_', '-')
-
-          metadata = {
-              'id': f'{os.environ[\"KAGGLE_USERNAME\"]}/{slug}',
-              'title': filename,
-              'code_file': notebook_path,
-              'language': 'python',
-              'kernel_type': 'notebook',
-              'is_private': True,
-              'enable_gpu': enable_gpu,
-              'enable_tpu': enable_tpu,
-              'enable_internet': True,
-              'keywords': keywords,
-              'dataset_sources': dataset_sources,
-              'kernel_sources': kernel_sources,
-              'competition_sources': []
-          }
-
-          # Write temporary notebook containing variables
-          with open(notebook_path, 'w', encoding='utf-8') as f:
-              json.dump(data, f, indent=1)
-
-          # Write dynamically extracted metadata configuration
-          with open('kernel-metadata.json', 'w', encoding='utf-8') as f:
-              json.dump(metadata, f, indent=2)
-
-          print('Successfully processed secrets, parsed inline notebook configurations, and wrote kernel-metadata.json!')
-          "
-
-          echo "Metadata compiled successfully. Initiating cloud sync..."
-
-          echo "---- RAW METADATA GENERATED FOR KAGGLE ----"
-          cat kernel-metadata.json
-          echo "-------------------------------------------"
-
-          # 3. THE KAGGLE PUSH COMMAND (Triggers remote isolated build)
-          kaggle kernels push -p .
+          uv sync
