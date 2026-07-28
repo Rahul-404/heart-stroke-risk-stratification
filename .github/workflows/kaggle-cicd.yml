@@ -91,30 +91,34 @@ jobs:
       #   run: |
       #     python scripts/cicd/inject_runtime.py
 
-      # - name: Inject GitHub metadata
-      #   env:
-      #     GITHUB_SHA: ${{ github.sha }}
-      #     GITHUB_REF_NAME: ${{ github.ref_name }}
-      #     GITHUB_RUN_ID: ${{ github.run_id }}
-      #     GITHUB_RUN_NUMBER: ${{ github.run_number }}
-      #   run: |
-      #     python scripts/cicd/inject_github_metadata.py
+      - name: Inject GitHub Metadata
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+          KAGGLE_DATASET_NAME: ${{ secrets.KAGGLE_DATASET_NAME }}
+          DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
+          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          python scripts/cicd/inject_github_metadata.py
 
-      # - name: Generate kernel-metadata.json
-      #   run: |
-      #     python scripts/cicd/generate_kernel_metadata.py
+      - name: Generate kernel-metadata.json
+        run: |
+          python scripts/cicd/generate_kernel_metadata.py
 
-      # - name: Validate Metadata
-      #   run: |
-      #     python scripts/cicd/validate_kernel_metadata.py
+      - name: Validate Metadata
+        run: |
+          python scripts/cicd/validate_kernel_metadata.py
 
-      # - name: Upload Artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: kaggle-notebook
-      #     path: |
-      #       notebooks/kernel-metadata.json
-
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaggle-notebook
+          path: |
+            notebooks/kernel-metadata.json
 
   ################################################################################
   # job 3 - Upload to Kaggle
@@ -134,9 +138,20 @@ jobs:
           python-version: "3.11"
           enable-cache: true
 
-      - name: Install Dependencies
+      - name: Install Kaggle CLI
         run: |
-          uv sync
+          uv pip install kaggle
+
+      - name: Configure Kaggle Authentication
+        run: |
+          mkdir -p ~/.kaggle
+          echo '{"username":"${{ secrets.KAGGLE_USERNAME }}","key":"${{ secrets.KAGGLE_KEY }}"}' > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+
+      - name: Push Notebook to Kaggle
+        id: push
+        run: |
+          python scripts/cicd/push_to_kaggle.py
 
   ################################################################################
   # job 4 - Trigger Execution
@@ -147,15 +162,14 @@ jobs:
     needs: upload-kaggle
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v5
-
-      - name: Setup uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          python-version: "3.11"
-          enable-cache: true
-
-      - name: Install Dependencies
+      - name: Configure Runtime
         run: |
-          uv sync
+          python scripts/cicd/configure_runtime.py
+
+      - name: Trigger Notebook Execution
+        run: |
+          python scripts/cicd/trigger_execution.py
+
+      - name: Publish Workflow Summary
+        run: |
+          python scripts/cicd/publish_summary.py
