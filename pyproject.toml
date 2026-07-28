@@ -67,3 +67,8 @@ python_files = [
   "test_*.py",
   "*_test.py"
 ]
+pythonpath = [
+  "scripts/kaggle_cicd"
+]
+[tool.bandit]
+skips = ["B404", "B603", "B607"]
