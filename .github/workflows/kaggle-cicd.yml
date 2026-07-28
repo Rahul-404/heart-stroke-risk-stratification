@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate-notebook-config
 
-    if: needs.read-config.outputs.execute == 'true'
+    if: needs.validate-notebook-config.outputs.execute == 'true'
 
     steps:
       - name: Checkout Repository
