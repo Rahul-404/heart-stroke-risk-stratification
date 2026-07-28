@@ -46,11 +46,11 @@ CONFIG_SCHEMA: dict[str, Configfield] = {
         "required": True,
         "pattern": r"^[a-z0-9-]+$",
     },
-    "title": {
-        "type": str,
-        "required": True,
-        "pattern": r"^[a-z0-9-]+$",
-    },
+    # "title": {
+    #     "type": str,
+    #     "required": True,
+    #     "pattern": r"^[a-z0-9-]+$",
+    # },
     "language": {
         "type": str,
         "required": True,
