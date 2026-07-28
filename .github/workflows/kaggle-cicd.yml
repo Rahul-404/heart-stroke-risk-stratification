@@ -102,6 +102,7 @@ jobs:
           KAGGLE_DATASET_NAME: ${{ secrets.KAGGLE_DATASET_NAME }}
           DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
           DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+          NOTEBOOK: ${{ steps.detect.outputs.notebook }}
         run: |
           python scripts/kaggle_cicd/inject_github_metadata.py
 
