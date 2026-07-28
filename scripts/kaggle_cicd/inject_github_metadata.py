@@ -111,7 +111,7 @@ def inject_environment_cell(notebook: dict) -> dict:
 
 
 def main() -> None:
-    notebook_path = Path("notebooks/notebook.ipynb")
+    notebook_path = Path(os.environ["NOTEBOOK"])
 
     notebook = load_notebook(notebook_path)
 
