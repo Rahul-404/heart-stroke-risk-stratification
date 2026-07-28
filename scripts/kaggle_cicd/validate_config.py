@@ -211,6 +211,8 @@ def validate_sources(config: dict) -> None:
 def validate_machine(config: dict) -> None:
     """Validate machine shape."""
 
+    enable_gpu = config.get("enable_gpu")
+    enable_tpu = config.get("enable_tpu")
     machine_shape = config.get("machine_shape")
 
     # Optional field
@@ -219,11 +221,12 @@ def validate_machine(config: dict) -> None:
 
     valid_choices = CONFIG_SCHEMA["machine_shape"]["choices"]
 
-    if machine_shape not in valid_choices:
-        raise ValidationError(
-            f"Invalid machine_shape '{machine_shape}'. "
-            f"Expected one of: {', '.join(valid_choices)}."
-        )
+    if enable_gpu or enable_tpu:
+        if machine_shape not in valid_choices:
+            raise ValidationError(
+                f"Invalid machine_shape '{machine_shape}'. "
+                f"Expected one of: {', '.join(valid_choices)}."
+            )
 
 def validate(config: dict) -> None:
     """Validate the complete notebook configuration."""
