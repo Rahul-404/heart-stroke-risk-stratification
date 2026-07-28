@@ -89,7 +89,7 @@ jobs:
 
       # - name: Inject Runtime Variables
       #   run: |
-      #     python scripts/cicd/inject_runtime.py
+      #     python scripts/kaggle_cicd/inject_runtime.py
 
       - name: Inject GitHub Metadata
         env:
@@ -103,15 +103,15 @@ jobs:
           DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
           DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
         run: |
-          python scripts/cicd/inject_github_metadata.py
+          python scripts/kaggle_cicd/inject_github_metadata.py
 
       - name: Generate kernel-metadata.json
         run: |
-          python scripts/cicd/generate_kernel_metadata.py
+          python scripts/kaggle_cicd/generate_kernel_metadata.py
 
       - name: Validate Metadata
         run: |
-          python scripts/cicd/validate_kernel_metadata.py
+          python scripts/kaggle_cicd/validate_kernel_metadata.py
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -151,7 +151,7 @@ jobs:
       - name: Push Notebook to Kaggle
         id: push
         run: |
-          python scripts/cicd/push_to_kaggle.py
+          python scripts/kaggle_cicd/push_to_kaggle.py
 
   ################################################################################
   # job 4 - Trigger Execution
@@ -164,12 +164,12 @@ jobs:
     steps:
       - name: Configure Runtime
         run: |
-          python scripts/cicd/configure_runtime.py
+          python scripts/kaggle_cicd/configure_runtime.py
 
       - name: Trigger Notebook Execution
         run: |
-          python scripts/cicd/trigger_execution.py
+          python scripts/kaggle_cicd/trigger_execution.py
 
       - name: Publish Workflow Summary
         run: |
-          python scripts/cicd/publish_summary.py
+          python scripts/kaggle_cicd/publish_summary.py
