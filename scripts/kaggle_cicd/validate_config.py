@@ -23,6 +23,9 @@ from difflib import get_close_matches
 from pathlib import Path
 from typing import TypedDict
 
+# Append the repository root path to python's loading index dynamically
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 from scripts.kaggle_cicd.parse_notebook_config import read_config
 
 
