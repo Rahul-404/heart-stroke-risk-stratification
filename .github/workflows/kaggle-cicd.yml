@@ -143,7 +143,7 @@ jobs:
   upload-kaggle:
     name: Upload Notebook to Kaggle
     runs-on: ubuntu-latest
-    needs: validate-kaggle-metadata
+    needs: [validate-kaggle-metadata, validate-notebook-config]
 
     steps:
       - name: Checkout Repository
