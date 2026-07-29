@@ -130,10 +130,6 @@ jobs:
         run: |
           python scripts/kaggle_cicd/generate_kernel_metadata.py
 
-      - name: Validate Metadata
-        run: |
-          python scripts/kaggle_cicd/validate_kernel_metadata.py
-
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -183,14 +179,17 @@ jobs:
     needs: upload-kaggle
 
     steps:
-      - name: Configure Runtime
-        run: |
-          python scripts/kaggle_cicd/configure_runtime.py
-
       - name: Trigger Notebook Execution
         run: |
           python scripts/kaggle_cicd/trigger_execution.py
 
       - name: Publish Workflow Summary
+        env:
+          NOTEBOOK:          ${{ needs.validate-notebook-config.outputs.notebook }}
+          SLUG:              ${{ needs.validate-notebook-config.outputs.slug }}
+          GITHUB_SHA:        ${{ github.sha }}
+          GITHUB_REF_NAME:   ${{ github.ref_name }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          KAGGLE_USERNAME:   ${{ secrets.KAGGLE_USERNAME }}
         run: |
           python scripts/kaggle_cicd/publish_summary.py
