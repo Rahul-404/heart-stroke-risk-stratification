@@ -167,6 +167,8 @@ jobs:
 
       - name: Push Notebook to Kaggle
         id: push
+        env:
+          NOTEBOOK: ${{ needs.validate-notebook-config.outputs.notebook }}
         run: |
           python scripts/kaggle_cicd/push_to_kaggle.py
 
