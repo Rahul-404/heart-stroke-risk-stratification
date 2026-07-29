@@ -17,27 +17,27 @@ jobs:
 
     outputs:
       # Execution
-      execute: ${{ steps.detect.outputs.execute }}
+      execute:  ${{ steps.detect.outputs.execute }}
       notebook: ${{ steps.detect.outputs.notebook }}
-      slug: ${{ steps.parse.outputs.slug }}
+      slug:     ${{ steps.parse.outputs.slug }}
 
       # Kernel Metadata
-      title: ${{ steps.parse.outputs.filename }}
-      language: ${{ steps.parse.outputs.language }}
+      title:       ${{ steps.parse.outputs.filename }}
+      language:    ${{ steps.parse.outputs.language }}
       kernel_type: ${{ steps.parse.outputs.kernel_type }}
-      is_private: ${{ steps.parse.outputs.is_private }}
+      is_private:  ${{ steps.parse.outputs.is_private }}
 
       # Runtime
-      enable_gpu: ${{ steps.parse.outputs.enable_gpu }}
-      enable_tpu: ${{ steps.parse.outputs.enable_tpu }}
+      enable_gpu:      ${{ steps.parse.outputs.enable_gpu }}
+      enable_tpu:      ${{ steps.parse.outputs.enable_tpu }}
       enable_internet: ${{ steps.parse.outputs.enable_internet }}
-      machine_shape: ${{ steps.parse.outputs.machine_shape }}
+      machine_shape:   ${{ steps.parse.outputs.machine_shape }}
 
       # Dependencies
-      dataset_sources: ${{ steps.parse.outputs.dataset_sources }}
+      dataset_sources:     ${{ steps.parse.outputs.dataset_sources }}
       competition_sources: ${{ steps.parse.outputs.competition_sources }}
-      kernel_sources: ${{ steps.parse.outputs.kernel_sources }}
-      model_sources: ${{ steps.parse.outputs.model_sources }}
+      kernel_sources:      ${{ steps.parse.outputs.kernel_sources }}
+      model_sources:       ${{ steps.parse.outputs.model_sources }}
 
       # Metadata
       keywords: ${{ steps.parse.outputs.keywords }}
@@ -93,20 +93,40 @@ jobs:
 
       - name: Inject GitHub Metadata
         env:
-          GITHUB_SHA: ${{ github.sha }}
-          GITHUB_REF_NAME: ${{ github.ref_name }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-          GITHUB_RUN_NUMBER: ${{ github.run_number }}
-          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
-          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+          GITHUB_SHA:          ${{ github.sha }}
+          GITHUB_REF_NAME:     ${{ github.ref_name }}
+          GITHUB_RUN_ID:       ${{ github.run_id }}
+          GITHUB_RUN_NUMBER:   ${{ github.run_number }}
+          KAGGLE_USERNAME:     ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY:          ${{ secrets.KAGGLE_KEY }}
           KAGGLE_DATASET_NAME: ${{ secrets.KAGGLE_DATASET_NAME }}
-          DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
-          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
-          NOTEBOOK: ${{ steps.detect.outputs.notebook }}
+          DAGSHUB_USERNAME:    ${{ secrets.DAGSHUB_USERNAME }}
+          DAGSHUB_TOKEN:       ${{ secrets.DAGSHUB_TOKEN }}
+          NOTEBOOK:            ${{ steps.detect.outputs.notebook }}
         run: |
           python scripts/kaggle_cicd/inject_github_metadata.py
 
       - name: Generate kernel-metadata.json
+        env:
+          NOTEBOOK:              ${{ needs.validate-notebook-config.outputs.notebook }}
+          SLUG:                  ${{ needs.validate-notebook-config.outputs.slug }}
+
+          TITLE:                 ${{ needs.validate-notebook-config.outputs.title }}
+          LANGUAGE:              ${{ needs.validate-notebook-config.outputs.language }}
+          KERNEL_TYPE:           ${{ needs.validate-notebook-config.outputs.kernel_type }}
+          IS_PRIVATE:            ${{ needs.validate-notebook-config.outputs.is_private }}
+
+          ENABLE_GPU:            ${{ needs.validate-notebook-config.outputs.enable_gpu }}
+          ENABLE_TPU:            ${{ needs.validate-notebook-config.outputs.enable_tpu }}
+          ENABLE_INTERNET:       ${{ needs.validate-notebook-config.outputs.enable_internet }}
+          MACHINE_SHAPE:         ${{ needs.validate-notebook-config.outputs.machine_shape }}
+
+          DATASET_SOURCES:       ${{ needs.validate-notebook-config.outputs.dataset_sources }}
+          COMPETITION_SOURCES:   ${{ needs.validate-notebook-config.outputs.competition_sources }}
+          KERNEL_SOURCES:        ${{ needs.validate-notebook-config.outputs.kernel_sources }}
+          MODEL_SOURCES:         ${{ needs.validate-notebook-config.outputs.model_sources }}
+
+          KEYWORDS:              ${{ needs.validate-notebook-config.outputs.keywords }}
         run: |
           python scripts/kaggle_cicd/generate_kernel_metadata.py
 
