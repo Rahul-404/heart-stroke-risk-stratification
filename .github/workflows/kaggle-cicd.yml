@@ -159,6 +159,12 @@ jobs:
         run: |
           uv pip install kaggle
 
+      - name: Download notebook artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kaggle-notebook
+          path: notebooks
+
       - name: Configure Kaggle Authentication
         run: |
           mkdir -p ~/.kaggle
