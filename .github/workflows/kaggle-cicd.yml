@@ -171,6 +171,10 @@ jobs:
           echo '{"username":"${{ secrets.KAGGLE_USERNAME }}","key":"${{ secrets.KAGGLE_KEY }}"}' > ~/.kaggle/kaggle.json
           chmod 600 ~/.kaggle/kaggle.json
 
+      - name: Show kernel metadata
+        run: |
+          cat notebooks/kernel-metadata.json
+
       - name: Push Notebook to Kaggle
         id: push
         env:
