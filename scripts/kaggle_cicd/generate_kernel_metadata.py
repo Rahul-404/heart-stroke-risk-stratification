@@ -19,8 +19,16 @@ from pathlib import Path
 
 def get_string(name: str) -> str:
     """Read a string environment variable."""
-    return ast.literal_eval(os.environ.get(name, ""))
+    value = os.environ.get(name, "").strip()
 
+    if (
+        len(value) >= 2
+        and value[0] == value[-1]
+        and value[0] in ("'", '"')
+    ):
+        value = value[1:-1]
+
+    return value
 
 def get_bool(name: str) -> bool:
     """Read a boolean environment variable."""
