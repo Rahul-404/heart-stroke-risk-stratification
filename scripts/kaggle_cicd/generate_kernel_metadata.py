@@ -57,7 +57,7 @@ def build_metadata() -> dict:
 
     return {
         # Required
-        "id": f'{ast.literal_eval(os.environ["KAGGLE_USERNAME"])}-{ast.literal_eval(os.environ["SLUG"])}',
+        "id": ast.literal_eval(os.environ["KAGGLE_USERNAME"])+"-"+ast.literal_eval(os.environ["SLUG"]),
         "title": ast.literal_eval(os.environ["TITLE"]),
         "code_file": notebook.name,
         "language": get_string("LANGUAGE"),
