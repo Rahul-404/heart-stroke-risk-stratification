@@ -11,6 +11,7 @@ Its only responsibility is to generate the metadata file expected by
 
 from __future__ import annotations
 
+import ast
 import json
 import os
 from pathlib import Path
@@ -18,7 +19,7 @@ from pathlib import Path
 
 def get_string(name: str) -> str:
     """Read a string environment variable."""
-    return os.environ.get(name, "")
+    return ast.literal_eval(os.environ.get(name, ""))
 
 
 def get_bool(name: str) -> bool:
@@ -48,8 +49,8 @@ def build_metadata() -> dict:
 
     return {
         # Required
-        "id": f'{os.environ["KAGGLE_USERNAME"]}-{os.environ["SLUG"]}',
-        "title": os.environ["TITLE"],
+        "id": f'{ast.literal_eval(os.environ["KAGGLE_USERNAME"])}-{ast.literal_eval(os.environ["SLUG"])}',
+        "title": ast.literal_eval(os.environ["TITLE"]),
         "code_file": notebook.name,
         "language": get_string("LANGUAGE"),
         "kernel_type": get_string("KERNEL_TYPE"),
