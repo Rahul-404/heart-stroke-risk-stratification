@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Inject GitHub metadata and runtime environment variables into a notebook.
 

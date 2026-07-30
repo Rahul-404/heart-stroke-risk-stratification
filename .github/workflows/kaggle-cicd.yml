@@ -1,5 +1,8 @@
 name: Dynamic Kaggle Fire-and-Forget Pipeline
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 on:
   push:
     branches:
@@ -50,6 +53,10 @@ jobs:
 
       - name: Detecte changed notebook
         id: detect
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA:  ${{ github.sha }}
+          TEST_NOTEBOOK: ${{ secrets.TEST_NOTEBOOK }}
         run: python scripts/kaggle_cicd/detect_notebooks.py
 
       - name: Parse notebook configuration
@@ -77,15 +84,15 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v5
 
-      - name: Setup uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          python-version: "3.11"
-          enable-cache: true
+      # - name: Setup uv
+      #   uses: astral-sh/setup-uv@v5
+      #   with:
+      #     python-version: "3.11"
+      #     enable-cache: true
 
-      - name: Install Dependencies
-        run: |
-          uv sync
+      # - name: Install Dependencies
+      #   run: |
+      #     uv sync
 
       # - name: Inject Runtime Variables
       #   run: |
@@ -108,6 +115,7 @@ jobs:
 
       - name: Generate kernel-metadata.json
         env:
+          KAGGLE_USERNAME:       ${{ secrets.KAGGLE_USERNAME }}
           NOTEBOOK:              ${{ needs.validate-notebook-config.outputs.notebook }}
           SLUG:                  ${{ needs.validate-notebook-config.outputs.slug }}
 
@@ -131,6 +139,7 @@ jobs:
           python scripts/kaggle_cicd/generate_kernel_metadata.py
 
       - name: Upload Artifact
+        if: ${{ !env.ACT }}
         uses: actions/upload-artifact@v4
         with:
           name: kaggle-notebook
@@ -160,6 +169,7 @@ jobs:
           uv pip install kaggle
 
       - name: Download notebook artifact
+        if: ${{ !env.ACT }}
         uses: actions/download-artifact@v4
         with:
           name: kaggle-notebook
@@ -172,10 +182,12 @@ jobs:
           chmod 600 ~/.kaggle/kaggle.json
 
       - name: Show kernel metadata
+        if: ${{ !env.ACT }}
         run: |
           cat notebooks/kernel-metadata.json
 
       - name: Push Notebook to Kaggle
+        if: ${{ !env.ACT }}
         id: push
         env:
           NOTEBOOK:          ${{ needs.validate-notebook-config.outputs.notebook }}
@@ -193,7 +205,7 @@ jobs:
     needs: upload-kaggle
 
     steps:
-      - name: Trigger Notebook Execution
+      - name: Trigger Execution
         run: |
           python scripts/kaggle_cicd/trigger_execution.py
 

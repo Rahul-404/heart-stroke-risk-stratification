@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Generate kernel-metadata.json for Kaggle.
 
@@ -49,7 +48,7 @@ def build_metadata() -> dict:
 
     return {
         # Required
-        "id": os.environ["SLUG"],
+        "id": f'{os.environ["KAGGLE_USERNAME"]}-{os.environ["SLUG"]}',
         "title": os.environ["TITLE"],
         "code_file": notebook.name,
         "language": get_string("LANGUAGE"),

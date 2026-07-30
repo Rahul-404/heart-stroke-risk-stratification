@@ -19,16 +19,25 @@ import sys
 
 def get_changed_files() -> list[str]:
     """Retrive list of changed file between the last two commits."""
-    return subprocess.check_output( # nosec B603
-        [
-            "git",
-            "diff",
-            "--name-only",
-            "HEAD^",
-            "HEAD",
-        ],
+    # Local/ACT override
+    if notebook := os.getenv("TEST_NOTEBOOK"):
+        return [notebook]
+
+    # GitHub Actions
+    before = os.getenv("BEFORE_SHA")
+    after = os.getenv("AFTER_SHA")
+
+    if before and after:
+        return subprocess.check_output(
+            ["git", "diff", "--name-only", before, after],
+            text=True,
+        ).splitlines()
+
+    # Local git fallback
+    return subprocess.check_output(
+        ["git", "diff", "--name-only", "HEAD^", "HEAD"],
         text=True,
-    ).splitlines()
+    ).splitlines() # nosec B603
 
 def find_notebooks(files: list[str]) -> list[str]:
     """Filters files down to those in the notebooks/ folder ending in .ipynb."""
