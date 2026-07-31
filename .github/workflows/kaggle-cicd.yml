@@ -205,6 +205,9 @@ jobs:
     needs: upload-kaggle
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+
       - name: Trigger Execution
         run: |
           python scripts/kaggle_cicd/trigger_execution.py
