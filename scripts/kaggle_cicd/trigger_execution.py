@@ -29,13 +29,13 @@ def get_env(name: str) -> str:
     return value
 
 
-def trigger_execution(owner: str, slug: str) -> None:
+def trigger_execution(owner: str, notebook: str) -> None:
     """Trigger execution of a Kaggle notebook."""
 
     api = KaggleApi()
     api.authenticate()
 
-    print(f"Triggering notebook: {owner}/{slug}")
+    print(f"Triggering notebook: {owner}/{notebook}")
 
     api.kernels_push_cli(
         folder=".",
@@ -48,9 +48,9 @@ def trigger_execution(owner: str, slug: str) -> None:
 def main() -> int:
     try:
         owner = get_env("KAGGLE_USERNAME")
-        slug = get_env("SLUG")
+        notebook = get_env("NOTEBOOK")
 
-        trigger_execution(owner, slug)
+        trigger_execution(owner, notebook)
 
         return 0
 
