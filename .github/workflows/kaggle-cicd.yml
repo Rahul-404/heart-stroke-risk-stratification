@@ -222,7 +222,7 @@ jobs:
         env:
           KAGGLE_USERNAME:   ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY:        ${{ secrets.KAGGLE_KEY }}
-          SLUG:              ${{ needs.validate-notebook-config.outputs.slug }}
+          NOTEBOOK:          ${{ needs.validate-notebook-config.outputs.notebook }}
         run: |
           python scripts/kaggle_cicd/trigger_execution.py
 
