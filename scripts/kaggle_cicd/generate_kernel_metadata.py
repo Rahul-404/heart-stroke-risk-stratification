@@ -11,7 +11,6 @@ Its only responsibility is to generate the metadata file expected by
 
 from __future__ import annotations
 
-import ast
 import json
 import os
 from pathlib import Path
@@ -58,7 +57,7 @@ def build_metadata() -> dict:
     return {
         # Required
         "id": f'{os.environ["KAGGLE_USERNAME"]}-{os.environ["SLUG"]}',
-        "title": ast.literal_eval(os.environ["TITLE"]),
+        "title": f'{os.environ["TITLE"]}',
         "code_file": notebook.name,
         "language": get_string("LANGUAGE"),
         "kernel_type": get_string("KERNEL_TYPE"),
