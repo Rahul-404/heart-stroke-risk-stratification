@@ -208,6 +208,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v5
 
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+          enable-cache: true
+
+      - name: Install Kaggle CLI
+        run: |
+          uv pip install kaggle
+
       - name: Trigger Execution
         run: |
           python scripts/kaggle_cicd/trigger_execution.py
