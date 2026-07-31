@@ -38,8 +38,7 @@ def trigger_execution(owner: str, notebook: str) -> None:
     print(f"Triggering notebook: {owner}/{notebook}")
 
     api.kernels_push_cli(
-        folder=".",
-        metadata=None,
+        folder="."
     )
 
     print("✓ Execution request submitted successfully.")
