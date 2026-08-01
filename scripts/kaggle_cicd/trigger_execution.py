@@ -35,10 +35,12 @@ def trigger_execution(owner: str, notebook: str) -> None:
     api = KaggleApi()
     api.authenticate()
 
+    folder = os.path.dirname(notebook) or "."
+
     print(f"Triggering notebook: {owner}/{notebook}")
 
     api.kernels_push_cli(
-        folder=".",
+        folder=folder,
         timeout=None,
         acc=None,
     )
