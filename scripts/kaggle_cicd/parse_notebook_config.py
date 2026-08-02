@@ -54,6 +54,15 @@ def parse_value(value: str):
 
         return value
 
+def parse_title_value(value: str):
+    """Convert title string into Python object."""
+
+    value = value.strip()
+
+    title = value.lower().replace('_', '-')
+
+    return title
+
 def read_config(notebook_path: Path) -> dict:
 
     with notebook_path.open(encoding="utf-8") as f:
@@ -93,12 +102,9 @@ def get_git_sha():
     except Exception:
         return "unknown"
 
+def create_config(notebook_path: Path) -> dict:
 
-def main():
-
-    notebook = Path(os.environ["NOTEBOOK"])
-
-    config = read_config(notebook)
+    config = read_config(notebook_path)
 
     # Generate UTC timestamp and Commit SHA
     executed_at = datetime.now(timezone.utc).isoformat()
@@ -106,7 +112,7 @@ def main():
 
     defaults = {
         "execute": True,
-        "title": notebook.stem,
+        "title": parse_title_value(notebook_path.stem),
         "language": "python",
         "kernel_type": "notebook",
         "is_private": True,
@@ -125,7 +131,15 @@ def main():
 
     defaults.update(config)
 
-    for key, value in defaults.items():
+    return defaults
+
+def main():
+
+    notebook = Path(os.environ["NOTEBOOK"])
+
+    config = create_config(notebook)
+
+    for key, value in config.items():
         set_output(key, value)
 
 
