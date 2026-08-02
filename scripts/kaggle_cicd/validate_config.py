@@ -26,7 +26,7 @@ from typing import TypedDict
 # Append the repository root path to python's loading index dynamically
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from scripts.kaggle_cicd.parse_notebook_config import read_config
+from scripts.kaggle_cicd.parse_notebook_config import create_config
 
 
 class Configfield(TypedDict, total=False):
@@ -46,11 +46,11 @@ CONFIG_SCHEMA: dict[str, Configfield] = {
         "required": True,
         "pattern": r"^[a-z0-9-]+$",
     },
-    # "title": {
-    #     "type": str,
-    #     "required": True,
-    #     "pattern": r"^[a-z0-9-]+$",
-    # },
+    "title": {
+        "type": str,
+        "required": True,
+        "pattern": r"^[A-Za-z0-9-]+$",
+    },
     "language": {
         "type": str,
         "required": True,
@@ -250,7 +250,7 @@ def validate(config: dict) -> None:
 def main() -> int:
     notebook = Path(os.environ["NOTEBOOK"])
 
-    config = read_config(notebook)
+    config = create_config(notebook)
 
     validate(config)
 
