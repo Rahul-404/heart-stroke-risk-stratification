@@ -48,24 +48,18 @@ def find_notebooks(files: list[str]) -> list[str]:
         and f.endswith(".ipynb")
     ]
 
-def write_outputs(execute: bool, notebook: str | None = None) -> None:
+def write_outputs(notebook: str | None = None) -> None:
     """Writes outputs to GITHUB_OUTPUT environment file, or prints if running locally."""
     output = os.environ["GITHUB_OUTPUT"]
 
     with open(output, "a") as f:
-        f.write(f"execute={str(execute).lower()}\n")
-
         if notebook:
             f.write(f"notebook={notebook}\n")
 
 def main() -> int:
     changed = get_changed_files()
     notebooks = find_notebooks(changed)
-
-    if notebooks:
-        write_outputs(True, notebooks[0])
-    else:
-        write_outputs(False)
+    write_outputs(notebooks[0])
 
     return 0
 if __name__ == "__main__":
