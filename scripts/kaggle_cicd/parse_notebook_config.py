@@ -32,8 +32,15 @@ def set_output(name: str, value) -> None:
 
     github_output = os.environ["GITHUB_OUTPUT"]
 
+    if isinstance(value, (list, dict)):
+        out_value = json.dumps(value)
+    elif isinstance(value, bool):
+        out_value = str(value).lower()
+    else:
+        out_value = str(value)
+
     with open(github_output, "a", encoding="utf-8") as f:
-        f.write(f"{name}={json.dumps(value)}\n")
+        f.write(f"{name}={out_value}\n")
 
 def parse_value(value: str):
     """Convert string into Python object."""
