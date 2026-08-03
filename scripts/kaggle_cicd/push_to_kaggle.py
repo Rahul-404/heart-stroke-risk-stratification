@@ -110,7 +110,7 @@ def main() -> None:
 
     print(f"Notebook : {notebook_path}")
 
-    push_to_kaggle(notebook_path)
+    # push_to_kaggle(notebook_path)
 
     github_output("upload_status", "success")
 
