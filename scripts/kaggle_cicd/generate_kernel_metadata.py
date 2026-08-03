@@ -57,7 +57,7 @@ def build_metadata() -> dict:
     return {
         # Required
         "id": f'{os.environ["KAGGLE_USERNAME"]}/{os.environ["SLUG"]}',
-        "title": f'{os.environ["TITLE"]}',
+        "title": get_string("TITLE"),
         "code_file": notebook.name,
         "language": get_string("LANGUAGE"),
         "kernel_type": get_string("KERNEL_TYPE"),
