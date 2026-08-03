@@ -130,6 +130,11 @@ jobs:
           path: |
             notebooks/kernel-metadata.json
 
+      - name: Show kernel metadata
+        if: ${{ !env.ACT }}
+        run: |
+          cat notebooks/kernel-metadata.json
+
   ################################################################################
   # job 3 - Upload to Kaggle
   ################################################################################
