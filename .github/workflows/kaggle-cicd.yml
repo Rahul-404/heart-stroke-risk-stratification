@@ -58,6 +58,7 @@ jobs:
 
       - name: Parse notebook configuration
         id: parse
+        if: steps.detect.outputs.notebook != ''
         env:
           NOTEBOOK: ${{ steps.detect.outputs.notebook }}
         run: python scripts/kaggle_cicd/parse_notebook_config.py
@@ -75,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate-notebook-config
 
-    if: needs.validate-notebook-config.outputs.execute == 'true'
+    if: needs.validate-notebook-config.outputs.notebook != ''
 
     steps:
       - name: Checkout Repository
