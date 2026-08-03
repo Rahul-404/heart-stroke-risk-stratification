@@ -22,7 +22,7 @@ jobs:
       slug:     ${{ steps.parse.outputs.slug }}
 
       # Kernel Metadata
-      title:       ${{ steps.parse.outputs.filename }}
+      title:       ${{ steps.parse.outputs.title }}
       language:    ${{ steps.parse.outputs.language }}
       kernel_type: ${{ steps.parse.outputs.kernel_type }}
       is_private:  ${{ steps.parse.outputs.is_private }}
