@@ -129,6 +129,7 @@ jobs:
           name: kaggle-notebook
           path: |
             notebooks/kernel-metadata.json
+            ${{ needs.validate-notebook-config.outputs.notebook }}
 
       - name: Show kernel metadata
         if: ${{ !env.ACT }}
