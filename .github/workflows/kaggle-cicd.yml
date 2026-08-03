@@ -103,7 +103,7 @@ jobs:
           NOTEBOOK:              ${{ needs.validate-notebook-config.outputs.notebook }}
           SLUG:                  ${{ needs.validate-notebook-config.outputs.slug }}
 
-          TITLE:                 ${{ needs.validate-notebook-config.outputs.title }}
+          TITLE:                 ${{ needs.validate-notebook-config.outputs.slug }} # slug and title should be same
           LANGUAGE:              ${{ needs.validate-notebook-config.outputs.language }}
           KERNEL_TYPE:           ${{ needs.validate-notebook-config.outputs.kernel_type }}
           IS_PRIVATE:            ${{ needs.validate-notebook-config.outputs.is_private }}
