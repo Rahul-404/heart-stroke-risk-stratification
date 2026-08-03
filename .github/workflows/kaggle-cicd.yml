@@ -19,7 +19,7 @@ jobs:
       # Execution
       execute:  ${{ steps.detect.outputs.execute }}
       notebook: ${{ steps.detect.outputs.notebook }}
-      slug:     ${{ steps.parse.outputs.slug }}
+      slug:     ${{ steps.parse.outputs.title }}
 
       # Kernel Metadata
       title:       ${{ steps.parse.outputs.title }}
@@ -101,9 +101,9 @@ jobs:
         env:
           KAGGLE_USERNAME:       ${{ secrets.KAGGLE_USERNAME }}
           NOTEBOOK:              ${{ needs.validate-notebook-config.outputs.notebook }}
-          SLUG:                  ${{ needs.validate-notebook-config.outputs.slug }}
+          SLUG:                  ${{ needs.validate-notebook-config.outputs.title }}
 
-          TITLE:                 ${{ needs.validate-notebook-config.outputs.slug }} # slug and title should be same
+          TITLE:                 ${{ needs.validate-notebook-config.outputs.title }} # slug should be same title
           LANGUAGE:              ${{ needs.validate-notebook-config.outputs.language }}
           KERNEL_TYPE:           ${{ needs.validate-notebook-config.outputs.kernel_type }}
           IS_PRIVATE:            ${{ needs.validate-notebook-config.outputs.is_private }}
@@ -225,7 +225,7 @@ jobs:
       - name: Publish Workflow Summary
         env:
           NOTEBOOK:          ${{ needs.validate-notebook-config.outputs.notebook }}
-          SLUG:              ${{ needs.validate-notebook-config.outputs.slug }}
+          SLUG:              ${{ needs.validate-notebook-config.outputs.title }}
           GITHUB_SHA:        ${{ github.sha }}
           GITHUB_REF_NAME:   ${{ github.ref_name }}
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
