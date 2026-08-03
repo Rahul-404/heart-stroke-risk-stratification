@@ -82,20 +82,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v5
 
-      # - name: Setup uv
-      #   uses: astral-sh/setup-uv@v5
-      #   with:
-      #     python-version: "3.11"
-      #     enable-cache: true
-
-      # - name: Install Dependencies
-      #   run: |
-      #     uv sync
-
-      # - name: Inject Runtime Variables
-      #   run: |
-      #     python scripts/kaggle_cicd/inject_runtime.py
-
       - name: Inject GitHub Metadata
         env:
           GITHUB_SHA:          ${{ github.sha }}
