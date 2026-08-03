@@ -19,7 +19,7 @@ def build_summary() -> str:
 
     notebook = getenv("NOTEBOOK")
     slug = getenv("SLUG")
-    owner = getenv("KAGGLE_USERNAME")
+    owner = "rahulshelke98"
 
     branch = getenv("GITHUB_REF_NAME")
     sha = getenv("GITHUB_SHA")[:7]
